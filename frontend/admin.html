@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RANG Admin — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0F0B09;
+      --surface: #1A1410;
+      --surface2: #241C16;
+      --border: rgba(255,255,255,0.08);
+      --cream: #F5F0E8;
+      --caramel: #C17D3C;
+      --gold: #D4A853;
+      --sage: #7A8C6E;
+      --rust: #9B4E2A;
+      --muted: rgba(245,240,232,0.45);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--bg); color: var(--cream); min-height: 100vh; }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem; height: 58px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { font-family: 'Playfair Display', serif; font-size: 1.3rem; letter-spacing: 0.08em; }
+    .logo span { color: var(--caramel); }
+    .admin-badge { font-size: 0.7rem; background: rgba(193,125,60,0.15); color: var(--caramel); padding: 0.25rem 0.75rem; border-radius: 100px; border: 1px solid rgba(193,125,60,0.3); }
+
+    .tabs {
+      display: flex; gap: 0; border-bottom: 1px solid var(--border);
+      padding: 0 2rem; background: var(--surface);
+    }
+    .tab {
+      padding: 0.75rem 1.25rem; font-size: 0.85rem; font-weight: 500;
+      color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
+      transition: all 0.2s; background: none; border-left: none; border-right: none; border-top: none;
+      font-family: 'Be Vietnam Pro', sans-serif;
+    }
+    .tab:hover { color: var(--cream); }
+    .tab.active { color: var(--caramel); border-bottom-color: var(--caramel); }
+
+    main { padding: 2rem; max-width: 1280px; margin: 0 auto; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* Stats cards */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.25rem 1.5rem;
+    }
+    .stat-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+    .stat-value { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--cream); }
+    .stat-value.accent { color: var(--caramel); }
+
+    /* Table */
+    .table-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+    }
+    .table-head {
+      padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .table-title { font-size: 0.95rem; font-weight: 600; }
+    .refresh-btn {
+      background: rgba(193,125,60,0.1); border: 1px solid rgba(193,125,60,0.3);
+      color: var(--caramel); border-radius: 8px; cursor: pointer;
+      padding: 0.35rem 0.85rem; font-size: 0.78rem; font-weight: 500;
+      font-family: 'Be Vietnam Pro', sans-serif; transition: all 0.2s;
+    }
+    .refresh-btn:hover { background: rgba(193,125,60,0.2); }
+
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left; font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); padding: 0.75rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 0.8rem 1.5rem; font-size: 0.85rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .badge {
+      display: inline-flex; padding: 0.2rem 0.65rem;
+      border-radius: 100px; font-size: 0.7rem; font-weight: 600;
+    }
+    .badge-pending  { background: rgba(212,168,83,0.15); color: var(--gold); }
+    .badge-complete { background: rgba(122,140,110,0.15); color: var(--sage); }
+    .badge-view     { background: rgba(255,255,255,0.06); color: var(--muted); }
+    .badge-cart     { background: rgba(193,125,60,0.12); color: var(--caramel); }
+    .badge-checkout { background: rgba(122,140,110,0.12); color: var(--sage); }
+
+    .event-chip {
+      display: inline-block; padding: 0.18rem 0.6rem;
+      border-radius: 6px; font-size: 0.7rem; font-weight: 600;
+      background: rgba(255,255,255,0.06); color: var(--muted);
+    }
+    .event-chip.page_view     { background: rgba(100,149,237,0.1); color: #6495ED; }
+    .event-chip.product_view  { background: rgba(212,168,83,0.1); color: var(--gold); }
+    .event-chip.add_to_cart   { background: rgba(193,125,60,0.15); color: var(--caramel); }
+    .event-chip.checkout_start, .event-chip.checkout_complete { background: rgba(122,140,110,0.15); color: var(--sage); }
+    .event-chip.remove_from_cart { background: rgba(155,78,42,0.15); color: var(--rust); }
+
+    .muted { color: var(--muted); }
+    .amount { font-family: 'Playfair Display', serif; color: var(--caramel); }
+
+    .loading { padding: 3rem; text-align: center; color: var(--muted); }
+
+    /* Event breakdown */
+    .breakdown-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 2rem; }
+    .ev-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1rem;
+    }
+    .ev-type { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    .ev-count { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; }
+  
+table { table-layout: fixed; width: 100%; }
+td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">RANG<span>.</span> Admin</div>
+  <span class="admin-badge">Dashboard</span>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('overview')">📊 Tổng quan</button>
+  <button class="tab" onclick="showTab('orders')">🛍️ Đơn hàng</button>
+  <button class="tab" onclick="showTab('logs')">📋 Hành vi</button>
+</div>
+
+<main>
+  <!-- Overview -->
+  <div class="panel active" id="tab-overview">
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><div class="stat-label">Tổng đơn hàng</div><div class="stat-value" id="s-orders">—</div></div>
+      <div class="stat-card"><div class="stat-label">Doanh thu</div><div class="stat-value accent" id="s-revenue">—</div></div>
+      <div class="stat-card"><div class="stat-label">Lượt hành vi</div><div class="stat-value" id="s-events">—</div></div>
+      <div class="stat-card"><div class="stat-label">Sản phẩm thêm vào giỏ</div><div class="stat-value" id="s-carts">—</div></div>
+<div class="stat-card">
+  <div class="stat-label">Chờ xử lý</div>
+  <div class="stat-value" id="s-pending">—</div>
+</div>
+<div class="stat-card">
+  <div class="stat-label">Đã giao thành công</div>
+  <div class="stat-value" id="s-delivered">—</div>
+</div>    
+	
+</div>
+
+    <div style="margin-bottom:1rem;font-size:0.8rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">Phân tích sự kiện</div>
+    <div class="breakdown-grid" id="eventBreakdown"></div>
+
+    <div class="table-wrap">
+      <div class="table-head"><span class="table-title">Top sản phẩm bán chạy</span></div>
+      <table><thead><tr><th>#</th><th>Sản phẩm</th><th>Đã bán</th></tr></thead>
+      <tbody id="topProductsBody"><tr><td colspan="3" class="loading">Đang tải...</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <!-- Orders -->
+  <div class="panel" id="tab-orders">
+    <div class="table-wrap">
+      <div class="table-head">
+        <span class="table-title">Danh sách đơn hàng</span>
+        <button class="refresh-btn" onclick="loadOrders()">↻ Làm mới</button>
+      </div>
+      <table>
+        <thead><tr><th>#ID</th><th>Khách hàng</th><th>SĐT</th><th>Sản phẩm</th><th>Tổng tiền</th><th>Thanh toán</th><th>Trạng thái</th><th>Thời gian</th><th>Lịch sử</th></tr></thead>
+        <tbody id="ordersBody"><tr><td colspan="8" class="loading">Đang tải...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Logs -->
+  <div class="panel" id="tab-logs">
+    <div class="table-wrap">
+      <div class="table-head">
+        <span class="table-title">Nhật ký hành vi người dùng</span>
+        <button class="refresh-btn" onclick="loadLogs()">↻ Làm mới</button>
+      </div>
+      <table>
+	<thead><tr><th style="width:160px">Sự kiện</th><th style="width:120px">Session</th><th style="width:160px">Sản phẩm</th><th>Data</th><th style="width:120px">IP</th><th style="width:140px">Thời gian</th></tr></thead>
+        <tbody id="logsBody"><tr><td colspan="6" class="loading">Đang tải...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+  const API = 'http://18.139.46.45:3001/api';
+
+  function showTab(name) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(`tab-${name}`).classList.add('active');
+    event.target.classList.add('active');
+    if (name === 'orders') loadOrders();
+    if (name === 'logs')   loadLogs();
+  }
+
+  function fmt(n) { return '₫' + Number(n).toLocaleString('vi-VN'); }
+  function fmtTime(t) {
+    const d = new Date(t);
+    return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'});
+  }
+  function shortId(s) { return s ? '…' + s.slice(-8) : '—'; }
+
+  async function loadStats() {
+    try {
+      const res = await fetch(`${API}/admin/stats`);
+      const json = await res.json();
+      const d = json.data;
+
+      document.getElementById('s-orders').textContent = d.orders.total_orders;
+      document.getElementById('s-revenue').textContent = fmt(d.orders.revenue);
+      document.getElementById('s-pending').textContent = d.orders.pending_orders;
+      document.getElementById('s-delivered').textContent = d.orders.delivered_orders;
+
+      const totalEvents = d.eventBreakdown.reduce((s, e) => s + parseInt(e.count), 0);
+      document.getElementById('s-events').textContent = totalEvents;
+
+      const cartCount = d.eventBreakdown.find(e => e.event_type === 'add_to_cart');
+      document.getElementById('s-carts').textContent = cartCount ? cartCount.count : 0;
+
+      // Event breakdown
+      const colors = { page_view: '#6495ED', product_view: '#D4A853', add_to_cart: '#C17D3C', checkout_start: '#7A8C6E', checkout_complete: '#5a7a5e', remove_from_cart: '#9B4E2A', filter_change: '#aaa', cart_view: '#bba' };
+      document.getElementById('eventBreakdown').innerHTML = d.eventBreakdown.map(e => `
+        <div class="ev-card">
+          <div class="ev-type">${e.event_type.replace(/_/g, ' ')}</div>
+          <div class="ev-count" style="color:${colors[e.event_type] || 'var(--cream)'}">${e.count}</div>
+        </div>
+      `).join('');
+
+      // Top products
+      document.getElementById('topProductsBody').innerHTML = d.topProducts.map((p, i) => `
+        <tr>
+          <td class="muted">${i + 1}</td>
+          <td>${p.product_name}</td>
+          <td class="amount">${p.total_sold}</td>
+        </tr>
+      `).join('') || '<tr><td colspan="3" class="muted" style="text-align:center;padding:2rem">Chưa có dữ liệu</td></tr>';
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function loadOrders() {
+    document.getElementById('ordersBody').innerHTML = '<tr><td colspan="8" class="loading">Đang tải...</td></tr>';
+    try {
+      const res = await fetch(`${API}/admin/orders`);
+      const json = await res.json();
+      const rows = json.data;
+
+      if (!rows.length) {
+        document.getElementById('ordersBody').innerHTML = '<tr><td colspan="8" class="muted" style="text-align:center;padding:2rem">Chưa có đơn hàng</td></tr>';
+        return;
+      }
+
+      document.getElementById('ordersBody').innerHTML = rows.map(o => {
+        const items = Array.isArray(o.items) ? o.items.filter(i => i && i.name).map(i => `${i.name} ×${i.qty}`).join(', ') : '—';
+        const payment = { cod: 'COD', bank_transfer: 'Chuyển khoản', momo: 'MoMo' }[o.payment_method] || o.payment_method;
+        return `<tr>
+          <td class="muted">#${o.id}</td>
+          <td><strong>${o.customer_name || '—'}</strong></td>
+          <td class="muted">${o.customer_phone || '—'}</td>
+          <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${items}">${items}</td>
+          <td class="amount">${fmt(o.total_amount)}</td>
+          <td class="muted">${payment}</td>
+          <td>
+  <select onchange="updateStatus(${o.id}, this.value)" 
+    style="background:var(--surface2);color:var(--cream);border:1px solid var(--border);
+    border-radius:8px;padding:0.3rem 0.5rem;font-size:0.8rem;cursor:pointer;">
+    <option value="pending"     ${o.status==='pending'     ?'selected':''}>⏳ Chờ xử lý</option>
+    <option value="confirmed"   ${o.status==='confirmed'   ?'selected':''}>✅ Đã xác nhận</option>
+    <option value="delivering"  ${o.status==='delivering'  ?'selected':''}>🚚 Đang giao</option>
+    <option value="delivered"   ${o.status==='delivered'   ?'selected':''}>📦 Đã giao</option>
+    <option value="cancelled"   ${o.status==='cancelled'   ?'selected':''}>❌ Đã huỷ</option>
+  </select>
+</td>
+<td class="muted">${fmtTime(o.updated_at)}</td>
+          <td>
+  	<button onclick="showHistory(${o.id})" style="background:rgba(255,255,255,0.06);border:none;color:var(--muted);
+    border-radius:6px;padding:0.3rem 0.7rem;cursor:pointer;font-size:0.78rem;">
+    Xem
+  </button>
+</td>
+        </tr>`;
+      }).join('');
+    } catch (e) {
+      document.getElementById('ordersBody').innerHTML = '<tr><td colspan="8" style="color:var(--rust);text-align:center;padding:2rem">Lỗi tải dữ liệu</td></tr>';
+    }
+  }
+
+  async function loadLogs() {
+    document.getElementById('logsBody').innerHTML = '<tr><td colspan="6" class="loading">Đang tải...</td></tr>';
+    try {
+      const res = await fetch(`${API}/admin/logs?limit=100`);
+      const json = await res.json();
+      const rows = json.data;
+
+      if (!rows.length) {
+        document.getElementById('logsBody').innerHTML = '<tr><td colspan="6" class="muted" style="text-align:center;padding:2rem">Chưa có log</td></tr>';
+        return;
+      }
+
+      document.getElementById('logsBody').innerHTML = rows.map(l => {
+        const data = l.data ? JSON.stringify(l.data).substring(0, 60) + (JSON.stringify(l.data).length > 60 ? '…' : '') : '—';
+        return `<tr>
+          <td><span class="event-chip ${l.event_type}">${l.event_type}</span></td>
+          <td class="muted" title="${l.session_id}">${shortId(l.session_id)}</td>
+          <td>${l.product_name || '<span class="muted">—</span>'}</td>
+<td style="font-size:0.78rem;max-width:200px">
+  <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)" 
+       title='${l.data ? JSON.stringify(l.data) : ""}'>
+    ${data}
+  </div>
+</td>
+<td class="muted" style="font-size:0.78rem;white-space:nowrap">${l.ip_address ? l.ip_address.split(',')[0].trim() : '—'}</td>
+          <td class="muted">${fmtTime(l.created_at)}</td>
+        </tr>`;
+      }).join('');
+    } catch (e) {
+      document.getElementById('logsBody').innerHTML = '<tr><td colspan="6" style="color:var(--rust);text-align:center;padding:2rem">Lỗi tải dữ liệu</td></tr>';
+    }
+  }
+  async function updateStatus(orderId, status) {
+  try {
+    const res = await fetch(`${API}/admin/orders/${orderId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showToast(`Đơn #${orderId} → ${status}`);
+      loadStats(); // cập nhật doanh thu realtime
+    }
+  } catch (e) {
+    alert('Lỗi cập nhật trạng thái');
+  }
+}
+
+async function showHistory(orderId) {
+  const res  = await fetch(`${API}/admin/orders/${orderId}/history`);
+  const json = await res.json();
+
+  const rows = json.data.map(h => {
+    const statusLabel = {
+      pending: '⏳ Chờ xử lý', confirmed: '✅ Đã xác nhận',
+      delivering: '🚚 Đang giao', delivered: '📦 Đã giao', cancelled: '❌ Đã huỷ'
+    }[h.status] || h.status;
+
+    return `<div style="display:flex;justify-content:space-between;padding:0.5rem 0;
+      border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.85rem;">
+      <span>${statusLabel}</span>
+      <span style="color:var(--muted)">${fmtTime(h.changed_at)}</span>
+    </div>`;
+  }).join('');
+
+  const modal = document.createElement('div');
+modal.id = 'historyModal';  
+modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:grid;place-items:center;';
+  modal.innerHTML = `
+    <div style="background:#1A1410;border:1px solid rgba(255,255,255,0.1);border-radius:16px;
+      padding:1.5rem;min-width:360px;max-width:90vw;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <strong>Lịch sử đơn #${orderId}</strong>
+        <button onclick="document.getElementById('historyModal').remove()" 
+          style="background:none;border:none;color:white;cursor:pointer;font-size:1.2rem;">✕</button>
+      </div>
+      ${rows || '<p style="color:var(--muted)">Chưa có lịch sử</p>'}
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:#C17D3C;color:white;padding:0.6rem 1.4rem;border-radius:100px;font-size:0.85rem;z-index:999;';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+  // Init
+  loadStats();
+  setInterval(loadStats, 30000); // auto-refresh every 30s
+</script>
+</body>
+</html>

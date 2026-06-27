@@ -1,0 +1,8 @@
+nohup: ignoring input
+
+> shop-backend@1.0.0 start
+> node server.js
+
+🚀 Server running on http://localhost:3001
+📊 Admin panel: http://localhost:3001/admin.html
+✅ Connected to PostgreSQL
