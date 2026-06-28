@@ -36,7 +36,7 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 async function logBehavior({ sessionId, eventType, productId = null, productName = null, data = {}, pageUrl = '', userAgent = '', ipAddress = '' }) {
   try {
     await pool.query(
-      `INSERT INTO behavior_logs (session_id, event_type, product_id, product_name, data, page_url, user_agent, ip_address)
+      `INSERT INTO app_events.behavior_logs (session_id, event_type, product_id, product_name, data, page_url, user_agent, ip_address)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [sessionId, eventType, productId, productName, JSON.stringify(data), pageUrl, userAgent, ipAddress]
     );
@@ -49,7 +49,7 @@ async function logBehavior({ sessionId, eventType, productId = null, productName
 app.get('/api/products', async (req, res) => {
   try {
     const { category, search } = req.query;
-    let query = 'SELECT * FROM products WHERE stock > 0';
+    let query = 'SELECT * FROM app.products WHERE stock > 0';
     const params = [];
 
     if (category && category !== 'all') {
@@ -71,7 +71,7 @@ app.get('/api/products', async (req, res) => {
 
 app.get('/api/products/:id', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
+    const result = await pool.query('SELECT * FROM app.products WHERE id = $1', [req.params.id]);
     if (!result.rows.length) return res.status(404).json({ success: false, error: 'Product not found' });
     res.json({ success: true, data: result.rows[0] });
   } catch (err) {
@@ -95,7 +95,7 @@ app.post('/api/track', async (req, res) => {
   if (sessionId) {
     try {
       await pool.query(
-        `INSERT INTO sessions (id, device_type, referrer, first_seen, last_seen, page_views)
+        `INSERT INTO app_events.sessions (id, device_type, referrer, first_seen, last_seen, page_views)
          VALUES ($1, $2, $3, NOW(), NOW(), 1)
          ON CONFLICT (id) DO UPDATE SET last_seen = NOW(), page_views = sessions.page_views + 1`,
         [sessionId, data?.deviceType || 'unknown', data?.referrer || '']
@@ -123,7 +123,7 @@ app.post('/api/orders', async (req, res) => {
 
     // Create order
     const orderResult = await client.query(
-      `INSERT INTO orders (session_id, customer_name, customer_email, customer_phone,
+      `INSERT INTO app.orders (session_id, customer_name, customer_email, customer_phone,
         shipping_address, payment_method, notes, total_amount, status)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pending')
        RETURNING id`,
@@ -135,7 +135,7 @@ app.post('/api/orders', async (req, res) => {
     // Insert order items
     for (const item of items) {
       await client.query(
-        `INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity, subtotal)
+        `INSERT INTO app.order_items (order_id, product_id, product_name, product_price, quantity, subtotal)
          VALUES ($1,$2,$3,$4,$5,$6)`,
         [orderId, item.productId, item.productName, item.price, item.quantity, item.price * item.quantity]
       );
@@ -165,10 +165,10 @@ app.post('/api/orders', async (req, res) => {
 
 app.get('/api/orders/:id', async (req, res) => {
   try {
-    const order = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    const order = await pool.query('SELECT * FROM app.orders WHERE id = $1', [req.params.id]);
     if (!order.rows.length) return res.status(404).json({ success: false, error: 'Order not found' });
 
-    const items = await pool.query('SELECT * FROM order_items WHERE order_id = $1', [req.params.id]);
+    const items = await pool.query('SELECT * FROM app.order_items WHERE order_id = $1', [req.params.id]);
     res.json({ success: true, data: { ...order.rows[0], items: items.rows } });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -179,7 +179,7 @@ app.get('/api/orders/:id', async (req, res) => {
 app.get('/api/admin/logs', async (req, res) => {
   try {
     const { limit = 50, eventType, sessionId } = req.query;
-    let query = 'SELECT * FROM behavior_logs';
+    let query = 'SELECT * FROM app_events.behavior_logs';
     const params = [];
     const wheres = [];
 
@@ -202,8 +202,8 @@ app.get('/api/admin/orders', async (req, res) => {
     const result = await pool.query(`
       SELECT o.*, 
         array_agg(json_build_object('name', oi.product_name, 'qty', oi.quantity, 'price', oi.product_price)) as items
-      FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi.order_id
+      FROM app.orders o
+      LEFT JOIN app.order_items oi ON o.id = oi.order_id
       GROUP BY o.id
       ORDER BY o.created_at DESC
       LIMIT 100
@@ -223,10 +223,10 @@ app.get('/api/admin/stats', async (req, res) => {
     COALESCE(SUM(CASE WHEN status = 'delivered' THEN total_amount ELSE 0 END), 0) as revenue,
     COUNT(CASE WHEN status = 'delivered' THEN 1 END) as delivered_orders,
     COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_orders
-    FROM orders WHERE status != 'cancelled'
+    FROM app.orders WHERE status != 'cancelled'
   `),
-      pool.query(`SELECT event_type, COUNT(*) as count FROM behavior_logs GROUP BY event_type ORDER BY count DESC`),
-      pool.query(`SELECT product_name, SUM(quantity) as total_sold FROM order_items GROUP BY product_name ORDER BY total_sold DESC LIMIT 5`)
+      pool.query(`SELECT event_type, COUNT(*) as count FROM app_events.behavior_logs GROUP BY event_type ORDER BY count DESC`),
+      pool.query(`SELECT product_name, SUM(quantity) as total_sold FROM app.order_items GROUP BY product_name ORDER BY total_sold DESC LIMIT 5`)
     ]);
     res.json({
       success: true,
@@ -245,7 +245,7 @@ app.get('/api/admin/stats', async (req, res) => {
 app.get('/api/admin/orders/:id/history', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT * FROM order_status_history WHERE order_id = $1 ORDER BY changed_at ASC',
+      'SELECT * FROM app.order_status_history WHERE order_id = $1 ORDER BY changed_at ASC',
       [req.params.id]
     );
     res.json({ success: true, data: result.rows });
@@ -275,7 +275,7 @@ app.patch('/api/admin/orders/:id/status', async (req, res) => {
 
     // Ghi lịch sử
     await client.query(
-      'INSERT INTO order_status_history (order_id, status, note) VALUES ($1, $2, $3)',
+      'INSERT INTO app.order_status_history (order_id, status, note) VALUES ($1, $2, $3)',
       [req.params.id, status, note || null]
     );
 

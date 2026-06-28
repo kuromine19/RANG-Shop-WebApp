@@ -1,9 +1,5 @@
--- ============================================================
--- SHOP DATABASE SCHEMA
--- ============================================================
-
 -- Products table
-CREATE TABLE IF NOT EXISTS products (
+CREATE TABLE IF NOT EXISTS app.products (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   description TEXT,
@@ -15,7 +11,7 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 -- Orders table
-CREATE TABLE IF NOT EXISTS orders (
+CREATE TABLE IF NOT EXISTS app.orders (
   id SERIAL PRIMARY KEY,
   session_id VARCHAR(255),
   customer_name VARCHAR(255),
@@ -31,7 +27,7 @@ CREATE TABLE IF NOT EXISTS orders (
 );
 
 -- Order items table
-CREATE TABLE IF NOT EXISTS order_items (
+CREATE TABLE IF NOT EXISTS app.order_items (
   id SERIAL PRIMARY KEY,
   order_id INT REFERENCES orders(id) ON DELETE CASCADE,
   product_id INT REFERENCES products(id),
@@ -41,16 +37,23 @@ CREATE TABLE IF NOT EXISTS order_items (
   subtotal DECIMAL(10,2)
 );
 
+-- Order status history
+CREATE TABLE IF NOT EXISTS app.order_status_history (
+  id SERIAL PRIMARY KEY,
+  order_id INT REFERENCES app.orders(id) ON DELETE CASCADE,
+  status VARCHAR(50) NOT NULL,
+  note TEXT,
+  changed_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Behavior logs table
-CREATE TABLE IF NOT EXISTS behavior_logs (
+CREATE TABLE IF NOT EXISTS app_events.behavior_logs (
   id SERIAL PRIMARY KEY,
   session_id VARCHAR(255),
   event_type VARCHAR(100) NOT NULL,
-  -- event types: page_view, product_view, add_to_cart, remove_from_cart,
-  --              checkout_start, checkout_complete, search, filter_change
   product_id INT REFERENCES products(id) ON DELETE SET NULL,
   product_name VARCHAR(255),
-  data JSONB,           -- flexible extra data (search query, quantity, etc.)
+  data JSONB,           
   page_url TEXT,
   user_agent TEXT,
   ip_address VARCHAR(45),
@@ -58,7 +61,7 @@ CREATE TABLE IF NOT EXISTS behavior_logs (
 );
 
 -- Sessions table (optional session tracking)
-CREATE TABLE IF NOT EXISTS sessions (
+CREATE TABLE IF NOT EXISTS app_events.sessions (
   id VARCHAR(255) PRIMARY KEY,
   device_type VARCHAR(50),
   referrer TEXT,
