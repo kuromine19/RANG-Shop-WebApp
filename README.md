@@ -2,6 +2,12 @@
 
 A mock Vietnamese coffee & tea e-commerce web application built to simulate real-world customer behavior and order data for a data engineering pipeline.
 
+## Demo
+
+[![RANG Shop Demo](https://youtu.be/TYrmBoEgd6I)](https://youtu.be/TYrmBoEgd6I)
+
+> Demo video showcasing the customer-facing shop and admin dashboard.
+
 ## Purpose
 
 This app serves as the **data source** for the [RANG Shop Data Pipeline](https://github.com/kuromine19/RANG-shop-data). It generates:
