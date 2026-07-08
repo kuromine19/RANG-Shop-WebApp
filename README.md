@@ -1,7 +1,9 @@
+
 # RANG Shop WebApp
 
 A mock Vietnamese coffee & tea e-commerce web application built to simulate real-world customer behavior and order data for a data engineering pipeline.
 
+##
 ## Demo
 
 [![RANG Shop Demo](https://img.youtube.com/vi/TYrmBoEgd6I/0.jpg)](https://youtu.be/TYrmBoEgd6I)
