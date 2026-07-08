@@ -4,7 +4,7 @@ A mock Vietnamese coffee & tea e-commerce web application built to simulate real
 
 ## Demo
 
-[![RANG Shop Demo](https://youtu.be/TYrmBoEgd6I)](https://youtu.be/TYrmBoEgd6I)
+[![RANG Shop Demo](https://img.youtube.com/vi/TYrmBoEgd6I/0.jpg)](https://youtu.be/TYrmBoEgd6I)
 
 > Demo video showcasing the customer-facing shop and admin dashboard.
 
