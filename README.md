@@ -30,15 +30,12 @@ This app serves as the **data source** for the [RANG Shop Data Pipeline](https:/
 
 ## Data Schema
 
-PostgreSQL — database: shopdb
-├── schema: app
-│   ├── orders
-│   ├── order_items
-│   ├── products
-│   └── order_status_history
-└── schema: app_events
-├── behavior_logs
-└── sessions
+**PostgreSQL — database: `shopdb`**
+
+| Schema | Tables |
+|--------|--------|
+| `app` | `orders`, `order_items`, `products`, `order_status_history` |
+| `app_events` | `behavior_logs`, `sessions` |
 
 ## Behavior Tracking
 
